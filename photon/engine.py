@@ -6,6 +6,7 @@ import threading
 from aiohttp import web
 import webview
 import os
+from photon.acl import acl
 
 class Hooks:
     ON_APP_START = "on_app_start"
@@ -142,6 +143,10 @@ class Engine:
         def pywebview_message(event: str, data=None):
             if data is None:
                 data = {}
+            if not acl.validate(event, data):
+                print(f"[ACL] Event Banned {event}")
+                window.evaluate_js(f"console.warn('ACL: Event Banned {event}')")
+                return
             message = {"event": event, "data": data}
             asyncio.run_coroutine_threadsafe(
                 self.message_queue.put(message),
