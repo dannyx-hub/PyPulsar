@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyphoton"
+version = "0.1.0"
+description = "Modern Python desktop framework – lightweight, secure, beautiful"
+readme = "README.md"
+authors = [{ name = "dannyx-hub", email = "daro322.dp@gmail.com" }]
+license = "MIT"  # ← POPRAWNE: prosty string SPDX (najlepsze rozwiązanie!)
+requires-python = ">=3.9"
+keywords = ["desktop", "gui", "pywebview", "framework", "electron-alternative"]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+]
+
+dependencies = [
+    "pywebview>=5.1",
+    "aiohttp>=3.9.0",
+    "typer[all]>=0.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "watchgod>=0.8",
+    "rich>=13.0",
+]
+build = [
+    "pyinstaller>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/dannyx-hub/pyphoton"
+Documentation = "https://pyphoton.dev"
+Repository = "https://github.com/dannyx-hub/pyphoton"
+Issues = "https://github.com/dannyx-hub/pyphoton/issues"
+
+[project.scripts]
+pyphoton = "pyphoton.cli:app"
+
+[tool.setuptools.package-data]
+"pyphoton" = ["templates/**/*"]
+
+[tool.setuptools.packages.find]
+include = ["pyphoton*"]
+exclude = ["plugins*"]

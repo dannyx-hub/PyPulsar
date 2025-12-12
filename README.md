@@ -19,7 +19,7 @@ It is designed for simplicity and performance, and future versions will support 
 ```bash
 git clone https://github.com/YOUR_USERNAME/PyPhoton.git
 cd PyPhoton
-pip install -r requirements.txt
+pip install -r requirements.txt.txt
 ```
 
 ### 🚀 Example Usage

@@ -1,12 +1,11 @@
-# photon/engine.py
+# pyphoton/engine.py
 import time
-import json
 import asyncio
 import threading
 from aiohttp import web
 import webview
 import os
-from photon.acl import acl
+from pyphoton.acl import acl
 
 class Hooks:
     ON_APP_START = "on_app_start"
@@ -15,16 +14,12 @@ class Hooks:
 
 
 class Api:
-    """Obiekt dostępny w JavaScript jako window.pywebview.api"""
     def __init__(self, engine):
         self.engine = engine
 
     def send(self, params):
-        """
-        window.pywebview.api.send({ event: "hello", data: { msg: "cześć" } })
-        """
         if not isinstance(params, dict) or "event" not in params:
-            print("[PyPhoton] Błąd: api.send() wymaga {event, data}")
+            print("[PyPhoton] Error: api.send() require {event, data}")
             return
 
         # Wrzucamy całą wiadomość do kolejki w Pythonie
@@ -48,7 +43,7 @@ class Engine:
         self.hooks = {value: [] for key, value in Hooks.__dict__.items()
                       if not key.startswith("__")}
 
-        from photon.plugins.plugin_manager import PluginManager
+        from pyphoton.plugins.plugin_manager import PluginManager
         self.plugins = PluginManager()
         self.plugins.set_engine(self)
         self.plugins.discover_plugins()
@@ -63,7 +58,7 @@ class Engine:
         if hook_name in self.hooks:
             self.hooks[hook_name].append(callback)
         else:
-            raise ValueError(f"Nieznany hook: {hook_name}")
+            raise ValueError(f"Unknown hook: {hook_name}")
 
     def emit_hook(self, hook_name, *args, **kwargs):
         if hook_name not in self.hooks:
@@ -74,7 +69,7 @@ class Engine:
                 try:
                     callback(*args, **kwargs)
                 except Exception as e:
-                    print(f"[PyPhoton] Błąd w hooku {hook_name}: {e}")
+                    print(f"[PyPhoton] Hook error {hook_name}: {e}")
             threading.Thread(target=run, daemon=True).start()
 
     def _wait_for_server(self, timeout: float = 8.0):
@@ -82,7 +77,7 @@ class Engine:
         while time.time() < deadline and not self._server_ready:
             time.sleep(0.1)
         if not self._server_ready:
-            raise TimeoutError(f"[PyPhoton] Serwer nie uruchomił się na porcie {self._port}")
+            raise TimeoutError(f"[PyPhoton] Server not start on {self._port}")
 
     def _run_server_and_processor(self):
         async def main():
@@ -95,7 +90,7 @@ class Engine:
             site = web.TCPSite(runner, '127.0.0.1', self._port)
             await site.start()
             self._server_ready = True
-            print(f"[PyPhoton] Serwer działa → http://127.0.0.1:{self._port}")
+            print(f"[PyPhoton] Server started → http://127.0.0.1:{self._port}")
 
             await self._start_message_processor()
 
@@ -105,21 +100,21 @@ class Engine:
         asyncio.run(main())
 
     async def _start_message_processor(self):
-        print("[PyPhoton] Procesor wiadomości uruchomiony")
+        print("[PyPhoton] Message processor started")
         while True:
             try:
                 message = await self.message_queue.get()
                 event_name = message.get("event")
                 data = message.get("data", {})
 
-                print(f"[PyPhoton] Otrzymano event: {event_name}")
+                print(f"[PyPhoton] Get event: {event_name}")
                 self.emit_hook(Hooks.ON_EVENT, event_name, data)
 
                 self.message_queue.task_done()
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                print(f"[PyPhoton] Błąd przetwarzania wiadomości: {e}")
+                print(f"[PyPhoton] Message Error: {e}")
 
     def create_window(self, path="/", title="PyPhoton", width=1000, height=700, resizable=True):
         if self._serve:
