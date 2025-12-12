@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pyphoton"
+name = "pypulsar"
 version = "0.1.0"
 description = "Modern Python desktop framework – lightweight, secure, beautiful"
 readme = "README.md"
