@@ -1,8 +1,11 @@
 from __future__ import annotations
 import os
+import zipfile
+import io
 import shutil
 import subprocess
 import sys
+import requests
 from pathlib import Path
 import typer
 from typing import Optional
@@ -14,8 +17,86 @@ app = typer.Typer(
     no_args_is_help=True
 )
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+PLUGIN_REGISTRY_URL = "https://dannyx-hub.github.io/pypulsar-plugins/index.json"
+PLUGINS_DIR = Path("plugins")
 
+@app.command()
+def plugin_list():
+    try:
+        response = requests.get(PLUGIN_REGISTRY_URL)
+        response.raise_for_status()
+        plugins = response.json()
+        typer.secho("Available plugins:", fg=typer.colors.GREEN)
+        for plugin in plugins:
+            typer.echo(f"{typer.style(plugin['id'], fg=typer.colors.YELLOW, bold=True)} v{plugin['version']}")
+            typer.echo(f"   {plugin['description']}")
+            typer.echo(f"   by {plugin['author']} • {', '.join(plugin['platforms'])}")
+            typer.echo("")
+    except requests.RequestException as e:
+        typer.secho(f"Failed to fetch plugin registry: {e}", fg=typer.colors.RED, err=True)
 
+@app.command()
+def plugin_install(
+    plugin_id: str = typer.Argument(..., help="Plugin ID, e.g. pypulsar.notifications"),
+):
+    try:
+        response = requests.get(PLUGIN_REGISTRY_URL)
+        response.raise_for_status()
+        plugins = response.json()
+
+        plugin = next((p for p in plugins if p["id"] == plugin_id), None)
+        if not plugin:
+            typer.secho(f"Plugin {plugin_id} not found", fg=typer.colors.RED)
+            raise typer.Exit(1)
+
+        typer.secho(
+            f"Installing plugin {plugin['id']} v{plugin['version']}",
+            fg=typer.colors.GREEN,
+        )
+
+        repo = plugin["repo"].rstrip("/")
+        zip_url = f"{repo}/archive/refs/heads/main.zip"
+
+        zip_resp = requests.get(zip_url)
+        zip_resp.raise_for_status()
+
+        plugin_slug = plugin["id"].split(".")[-1]
+        plugin_dir = PLUGINS_DIR / plugin_slug
+        plugin_dir.mkdir(parents=True, exist_ok=True)
+
+        with zipfile.ZipFile(io.BytesIO(zip_resp.content)) as zf:
+            root_dir = zf.namelist()[0].split("/")[0]
+
+            for member in zf.namelist():
+                if not member.startswith(root_dir + "/"):
+                    continue
+
+                relative_path = Path(member).relative_to(root_dir)
+                if relative_path.name == "":
+                    continue  # pomiń root folder
+
+                target_path = plugin_dir / relative_path
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+
+                with zf.open(member) as src, open(target_path, "wb") as dst:
+                    dst.write(src.read())
+
+        typer.secho(
+            f"Installed plugin {plugin['id']} v{plugin['version']}",
+            fg=typer.colors.GREEN,
+        )
+        typer.echo("Restart your app to load the new plugin")
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        typer.secho(
+            f"Failed to install plugin: {e}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
 @app.command()
 def create(
     name: str = typer.Argument(..., help="Name of the new project"),

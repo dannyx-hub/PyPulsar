@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypulsar"
-version = "0.1.1"
+version = "0.1.2"
 description = "Modern Python desktop framework – lightweight, secure, beautiful"
 readme = "README.md"
 authors = [{ name = "dannyx-hub", email = "daro322.dp@gmail.com" }]
@@ -31,6 +31,7 @@ dependencies = [
     "pywebview>=5.1",
     "aiohttp>=3.9.0",
     "typer[all]>=0.12.0",
+    "requests==2.32.5"
 ]
 
 [project.optional-dependencies]
