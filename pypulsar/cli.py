@@ -327,7 +327,6 @@ def main(
             typer.echo("PyPulsar CLI (development version)")
         raise typer.Exit()
 
-    # Jeśli nie podano żadnej komendy – pokaż help
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
         raise typer.Exit()
