@@ -73,7 +73,7 @@ def plugin_install(
 
                 relative_path = Path(member).relative_to(root_dir)
                 if relative_path.name == "":
-                    continue  # pomiń root folder
+                    continue 
 
                 target_path = plugin_dir / relative_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)

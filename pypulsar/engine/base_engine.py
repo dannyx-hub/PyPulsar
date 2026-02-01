@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import asyncio
 import threading
+import socketserver
+import http.server
 from typing import Optional, Dict, Callable, Any
 
 from pypulsar.acl import acl
@@ -38,13 +40,37 @@ class BaseEngine(ABC):
         self.plugins.set_engine(self)
         self.plugins.discover_plugins()
         
+        self.api_functions: Dict[str, Callable] = {}
+        
         
         if serve:
             threading.Thread(target=self._run_server_processor, daemon=True).start()
             self._wait_for_server()
         else:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+        
+        # Ensure event loop is always available
+        try:
             self.loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
             
+    
+    def _run_simple_server(self):
+        class Handler(http.server.SimpleHTTPRequestHandler):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, directory=self.server.directory, **kwargs)
+        Handler.directory = self._webroot
+        try:
+            with socketserver.TCPServer(("127.0.0.1", self._port), Handler) as httpd:
+                print(f"[PyPulsar] Simple server started -> http://127.0.0.1:{self._port}")
+                self._server_ready = True
+                httpd.serve_forever()
+        except Exception as e:
+            print(f"[PyPulsar] Simple server error: {e}")
+            return
     def register_hook(self, hook_name: str, callback: Callable):
         if hook_name in self.hooks:
             self.hooks[hook_name].append(callback)
@@ -111,6 +137,14 @@ class BaseEngine(ABC):
     def get_window(self, window_id: str):
         return self.window_manager.get_window(window_id=window_id)
     
+    def expose_api(self, api_functions: Dict[str, Callable]):
+        """Expose Python functions to be callable from JavaScript"""
+        self.api_functions.update(api_functions)
+    
+    def emit_to_js(self, event_name: str, data: dict = None):
+        """Emit an event to all JavaScript windows"""
+        self.window_manager.broadcast_event(event_name, data or {})
+    
     @abstractmethod
     def run(self):
         """
@@ -122,7 +156,7 @@ class BaseEngine(ABC):
     def quit(self):
         windows = self.window_manager.windows
         for window in windows:
-            window.destroy()
-    
+            win = self.window_manager.get_window(window)
+            win.destroy()
     
     

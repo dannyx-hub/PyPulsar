@@ -1,6 +1,5 @@
 
 import asyncio
-import json
 from pypulsar.acl import acl
 
 
@@ -25,7 +24,7 @@ class Api:
             self.engine.loop
         )
 
-    async def pywebview_message(self, event_name: str, payload: dict = None):
+    def pywebview_message(self, event_name: str, payload: dict = None):
         payload = payload or {}
         print(f"[PyPulsar] JS → Python API call: {event_name} {payload}")
 
@@ -42,6 +41,6 @@ class Api:
 
         result = func(payload)
         if asyncio.iscoroutine(result):
-            result = await result
+            result = asyncio.run(result)
 
         return result

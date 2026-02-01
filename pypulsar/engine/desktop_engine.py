@@ -16,7 +16,7 @@ class DesktopEngine(BaseEngine):
             site = web.TCPSite(runner, "127.0.0.1", self._port)
             await site.start()
             self._server_ready = True
-            print(f"[PyPulsar] Server started -> htpp://127.0.0.1:{self._port}")
+            print(f"[PyPulsar] Server started -> http://127.0.0.1:{self._port}")
             await self._start_message_processor()
             while True:
                 await asyncio.sleep(3600)
