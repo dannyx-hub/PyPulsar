@@ -1,0 +1,62 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  text-align: center;
+}
+
+nav {
+  margin-bottom: 20px;
+}
+
+nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #007bff;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+input, select {
+  padding: 8px;
+  margin: 5px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  cursor: pointer;
+  padding: 5px;
+  background-color: #f0f0f0;
+  margin: 2px;
+}
+
+li:hover {
+  background-color: #e0e0e0;
+}
+
+pre {
+  text-align: left;
+  background-color: #f8f8f8;
+  padding: 10px;
+  border: 1px solid #ccc;
+  max-height: 400px;
+  overflow-y: auto;
+}
