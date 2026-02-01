@@ -1,0 +1,20 @@
+[tool.briefcase]
+project_name = "PyPulsar basic"
+bundle = "org.pypulsar"
+version = "0.1.0"
+description = "Basic template for PyPulsar Android app"
+sources = ["src"]
+requires = [
+    "../PyPulsar/dist/pypulsar-0.1.3-py3-none-any.whl[android]",
+    "toga",
+]
+[tool.briefcase.app.pypulsar-basic]
+formal_name = "PyPulsar Basic"
+sources = ['src/pypulsar_basic']
+
+[tool.briefcase.app.pypulsar-basic.android]
+license = "MIT"
+min_sdk_version = 24
+target_sdk_version = 34
+build_tools_version = "34.0.0"
+compile_sdk_version = 34
