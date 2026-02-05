@@ -166,6 +166,8 @@ def create(
     typer.secho(f"Project '{name}' created successfully!", fg=typer.colors.GREEN, bold=True)
     typer.echo("\nNext steps:")
     typer.echo(f"  cd {name}")
+    if template in ["react", "vue", "svelte"]:
+        typer.echo("  npm install      # install frontend dependencies")
     typer.echo("  pypulsar dev      # start in development mode")
     typer.echo("  pypulsar build    # build native app (.app/.exe)")
 
@@ -175,9 +177,23 @@ def dev():
     if not Path("main.py").exists():
         typer.secho("Error: main.py not found – run this command inside a PyPulsar project!", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
-    typer.secho("Starting dev mode...", fg=typer.colors.GREEN)
-    subprocess.run([sys.executable, "main.py"])
-
+    npm_process = None
+    if Path("web/package.json").exists():
+        typer.secho("Detected React Template - starting Vite dev server...", fg=typer.colors.GREEN)
+        import time
+        npm_process = subprocess.Popen(["npm", "run", "dev"], cwd="web")
+        time.sleep(3)
+    try:
+        typer.secho("Starting dev mode...", fg=typer.colors.GREEN)
+        subprocess.run([sys.executable, "main.py"])
+    except KeyboardInterrupt:
+        typer.secho("Shutting down...", fg=typer.colors.YELLOW)
+    finally:
+        if npm_process:
+            npm_process.terminate()
+            npm_process.wait()
+            typer.secho("Stopped Vite dev server.", fg=typer.colors.YELLOW)
+        typer.secho("Dev mode exited.", fg=typer.colors.YELLOW)
 
 @app.command()
 def build(

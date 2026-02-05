@@ -17,7 +17,7 @@ app_state = {
 
 engine = DesktopEngine(
     debug=True,
-    serve=False # if you want to use Vite dev server, set this to False
+    serve=False, # if you want to use bulit frontend, set this to True
     port=3000, # if serve is False this argument is irelevant
     webroot="web/dist", # same as port if serve is False
 )
@@ -85,6 +85,6 @@ if __name__ == "__main__":
         title="Advanced PyPulsar + React App",
         width=1400,
         height=900,
-        path="/index.html" # if serve is False, write path for vite dev server e.g. "http://localhost:3000"
+        path="http://localhost:3000/" # if serve is True and react frontend is built, write path for index.html in webroot, if serve is False write path for Vite dev server"
     )
     engine.run()

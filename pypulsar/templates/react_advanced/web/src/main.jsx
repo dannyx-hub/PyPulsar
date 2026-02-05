@@ -15,6 +15,11 @@ const waitForPyWebView = () => {
           resolve();
         }
       }, 100);
+      // Timeout after 5 seconds to allow running in dev mode without pywebview
+      setTimeout(() => {
+        clearInterval(interval);
+        resolve();
+      }, 5000);
     }
   });
 };
