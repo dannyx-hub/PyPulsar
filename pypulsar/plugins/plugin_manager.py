@@ -1,6 +1,13 @@
 import os
 import json
+import sys
 import importlib.util
+
+IS_ANDROID = (
+    "android" in sys.platform.lower()
+    or "chaquopy" in sys.modules
+    or getattr(sys, "getandroidapilevel", None) is not None
+)
 
 class Plugin:
     def __init__(self, path):
@@ -37,17 +44,28 @@ class PluginManager:
         self.engine = engine
 
     def discover_plugins(self):
-        if not os.path.exists(self.plugin_folder):
-            os.makedirs(self.plugin_folder)
-        for item in os.listdir(self.plugin_folder):
-            path = os.path.join(self.plugin_folder, item)
-            if os.path.isdir(path):
-                try:
-                    plugin = Plugin(path)
-                    plugin.load_manifest()
-                    plugin.load_module()
-                    plugin.register(self.engine)
-                    self.plugins.append(plugin)
-                    print(f"[PluginManager] Loaded plugin {plugin.manifest['name']}")
-                except Exception as e:
-                    print(f"[PluginManager] Failed to load plugin {item}: {e}")
+        if IS_ANDROID:
+            try:
+                from toga import App
+                app = App.instance()
+                if app:
+                    plugins_dir = str(app.paths.app_data / "plugins")
+                    os.makedirs(plugins_dir, exist_ok=True)
+                    self.plugin_folder = plugins_dir
+            except Exception:
+                pass
+        else:
+            if not os.path.exists(self.plugin_folder):
+                os.makedirs(self.plugin_folder)
+            for item in os.listdir(self.plugin_folder):
+                path = os.path.join(self.plugin_folder, item)
+                if os.path.isdir(path):
+                    try:
+                        plugin = Plugin(path)
+                        plugin.load_manifest()
+                        plugin.load_module()
+                        plugin.register(self.engine)
+                        self.plugins.append(plugin)
+                        print(f"[PluginManager] Loaded plugin {plugin.manifest['name']}")
+                    except Exception as e:
+                        print(f"[PluginManager] Failed to load plugin {item}: {e}")
